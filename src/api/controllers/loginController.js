@@ -1,4 +1,4 @@
-const LoginServices = require('../services/login');
+const LoginServices = require('../services/loginService');
 
 const login = async (request, response) => {
         const token = await LoginServices.auth(request.body);

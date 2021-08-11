@@ -1,5 +1,5 @@
 const UserModel = require('../models/users');
-const UserSchema = require('../schemas/users');
+const UserSchema = require('../schemas/usersSchema');
 const AppError = require('../errors/appError');
 
 const findAll = () => UserModel.findAll();

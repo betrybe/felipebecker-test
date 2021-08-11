@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/users');
-const LoginSchema = require('../schemas/login');
+const LoginSchema = require('../schemas/loginSchema');
 const { jwtData } = require('../config/auth');
 const AppError = require('../errors/appError');
 
@@ -22,8 +22,9 @@ const auth = async (loginData) => {
 
     const { _id, role } = userLogin;
     const { secret, expiresIn, algorithm } = jwtData;
+    const user = { _id, role, email };
 
-    const token = jwt.sign({ data: _id, email, role }, secret, {
+    const token = jwt.sign({ data: user }, secret, {
         expiresIn,
         algorithm,
     });

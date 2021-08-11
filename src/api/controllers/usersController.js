@@ -1,4 +1,4 @@
-const UsersServices = require('../services/users');
+const UsersServices = require('../services/usersService');
 
 const findAll = (async (_request, response) => {
     const results = await UsersServices.findAll();
