@@ -17,7 +17,7 @@ app.use((err, _request, response, _) => {
   }
 
   return response.status(500).json({
-    message: 'Internal error of system',
+    message: 'Internal error of the system',
   });
 });
 
