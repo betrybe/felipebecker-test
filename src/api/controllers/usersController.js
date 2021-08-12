@@ -20,7 +20,24 @@ const create = (async (request, response) => {
     } });
 });
 
+const createAdmin = (async (request, response) => {
+    const userData = request.body;
+    const { role: roleAdmin } = request.user;
+
+    const { _id, ...user } = await UsersServices.createAdmin(
+        userData, roleAdmin,
+    );
+
+    response.status(201).json({ user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        _id,
+    } });
+});
+
 module.exports = {
     findAll,  
-    create,   
+    create,
+    createAdmin,
 };
