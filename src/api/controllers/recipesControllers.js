@@ -18,10 +18,10 @@ const findById = (async (request, response) => {
 
 const create = (async (request, response) => {
     const { name, ingredients, preparation } = request.body;
-    const { _id } = request.user;
+    const { _id: user } = request.user;
 
-    const { ...recipe } = await RecipesServices.create({
-        name, ingredients, preparation, userId: _id.toString(),
+    const { _id, ...recipe } = await RecipesServices.create({
+        name, ingredients, preparation, userId: user.toString(),
     });
 
     response.status(201).json({
@@ -35,8 +35,18 @@ const create = (async (request, response) => {
     });
 });
 
+const edit = (async (request, response) => {
+    const { id } = request.params;
+    const { _id: user, role } = request.user;
+
+    request.body.userId = user.toString();
+    const results = await RecipesServices.edit(id, request.body, role);
+    response.json(results);
+  });
+
 module.exports = {
     findAll,
     findById,
     create,
+    edit,
 };

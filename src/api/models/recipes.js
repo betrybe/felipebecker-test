@@ -13,7 +13,11 @@ const findAll = async () => {
 
 const findById = async (id) => {
   const recipe = await getRecipesCollection();
-  return recipe.findOne(ObjectId(id));
+  try {
+    return recipe.findOne(ObjectId(id));
+  } catch (err) {
+    return false;
+  }
 };
 
 const create = async (recipe) => {
@@ -23,8 +27,20 @@ const create = async (recipe) => {
   return { _id: recipeId, ...recipe };
 };
 
+const edit = async (id, recipe) => {
+  const recipes = await getRecipesCollection();
+
+  const updatedRecipe = await recipes.findOneAndUpdate(
+    { _id: ObjectId(id) },
+    { $set: recipe },
+    { returnOriginal: false },
+  );
+  return updatedRecipe.value;
+};
+
 module.exports = {
   findAll,
   findById,
   create,
+  edit,
 };

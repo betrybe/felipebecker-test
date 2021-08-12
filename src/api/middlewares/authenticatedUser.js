@@ -8,7 +8,7 @@ module.exports = async (request, _response, next) => {
 
   // const [, token] = tokenData.split(' ');
   
-  if (!token) throw new AppError('jwt malformed', 401);
+  if (!token) throw new AppError('missing auth token', 401);
 
   try {
     const decodedVerified = jwt.verify(token, jwtData.secret);
