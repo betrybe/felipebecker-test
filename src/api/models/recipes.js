@@ -38,9 +38,17 @@ const edit = async (id, recipe) => {
   return updatedRecipe.value;
 };
 
+const removeById = async (id) => {
+  const recipes = await getRecipesCollection();
+  const { deletedCount } = await recipes.deleteOne({ _id: ObjectId(id) });
+  if (!deletedCount) throw new Error('Failed to remove register');
+  return true;
+};
+
 module.exports = {
   findAll,
   findById,
   create,
   edit,
+  removeById,
 };

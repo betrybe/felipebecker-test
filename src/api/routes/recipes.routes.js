@@ -11,4 +11,6 @@ router.post('/', authenticatedUser, RecipesControllers.create);
 
 router.put('/:id', authenticatedUser, RecipesControllers.edit);
 
+router.delete('/:id', authenticatedUser, RecipesControllers.remove);
+
 module.exports = router;

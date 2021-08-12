@@ -42,11 +42,20 @@ const edit = (async (request, response) => {
     request.body.userId = user.toString();
     const results = await RecipesServices.edit(id, request.body, role);
     response.json(results);
-  });
+});
+
+const remove = (async (request, response) => {
+    const { id } = request.params;
+    const { _id: user, role } = request.user;
+    await RecipesServices.remove(id, user.toString(), role);
+
+    response.status(204).json({});
+});
 
 module.exports = {
     findAll,
     findById,
     create,
     edit,
+    remove,
 };

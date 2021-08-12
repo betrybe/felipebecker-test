@@ -6,6 +6,26 @@ const findAll = () => RecipeModel.findAll();
 
 const findById = (id) => RecipeModel.findById(id);
 
+const findOwnerRecipe = async (id) => {
+  const recipeData = await findById(id);
+
+  return recipeData;
+};
+
+const remove = async (id, user, role) => {
+  const response = await findOwnerRecipe(id);
+  try {
+    console.log(response.userId, user);
+    if (response.userId === user || role === 'admin') {
+      return RecipeModel.removeById(id);
+    }
+   
+    throw new AppError('Invalid data. Permission denied to remove', 400);
+  } catch (error) {
+    throw new AppError('Invalid data. Permission denied to remove', 400);
+  }
+};
+
 const create = async (recipe) => {
   const { value, error } = RecipeSchema.validate(recipe);
   if (error) {
@@ -15,14 +35,8 @@ const create = async (recipe) => {
   return RecipeModel.create(value);
 };
 
-const findOwnerRecipe = async (id) => {
-  const recipeData = await findById(id);
-
-  return recipeData;
-};
-
 const edit = async (id, recipe, role) => {
-  const { error } = RecipeSchema.validate(recipe); 
+  const { error } = RecipeSchema.validate(recipe);
 
   if (error) {
     throw new AppError('Invalid entries. Try again.', 400);
@@ -30,10 +44,10 @@ const edit = async (id, recipe, role) => {
 
   const response = await findOwnerRecipe(id);
 
-  if (response.userId === recipe.userId || role === 'admin') { 
-    return RecipeModel.edit(id, recipe); 
-  } 
-    throw new AppError('Invalid user. Permission denied to edit', 400);
+  if (response.userId === recipe.userId || role === 'admin') {
+    return RecipeModel.edit(id, recipe);
+  }
+  throw new AppError('Invalid data. Permission denied to edit', 400);
 };
 
 module.exports = {
@@ -42,4 +56,5 @@ module.exports = {
   findOwnerRecipe,
   create,
   edit,
+  remove,
 };
