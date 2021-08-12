@@ -6,7 +6,8 @@ const findAll = (async (_request, response) => {
 });
 
 const findById = (async (request, response) => {
-    const { id } = request.params;
+    const { id } = request.params; 
+   
     const result = await RecipesServices.findById(id);
 
     if (!result) {
@@ -44,9 +45,21 @@ const edit = (async (request, response) => {
     response.json(results);
 });
 
+const createImage = (async (request, response) => {
+    const { id } = request.params;
+    const image = request.file ? request.file.filename : undefined;
+    const { _id: user, role } = request.user;
+
+    const fullUrl = `${request.get('host')}/src/uploads/${image}`;
+
+    const results = await RecipesServices.createImage(id, fullUrl, user.toString(), role);
+    response.json(results);
+});
+
 const remove = (async (request, response) => {
     const { id } = request.params;
     const { _id: user, role } = request.user;
+
     await RecipesServices.remove(id, user.toString(), role);
 
     response.status(204).json({});
@@ -57,5 +70,6 @@ module.exports = {
     findById,
     create,
     edit,
+    createImage,
     remove,
 };

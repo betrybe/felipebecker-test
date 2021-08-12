@@ -38,6 +38,21 @@ const edit = async (id, recipe) => {
   return updatedRecipe.value;
 };
 
+const createImage = async (id, image, user) => {
+  const recipes = await getRecipesCollection();
+
+  const updatedRecipeImage = await recipes.findOneAndUpdate(
+    { _id: ObjectId(id) },
+    { $set: {
+      image,
+      userId: user,
+    } },
+    { returnOriginal: false },
+  );
+  
+  return updatedRecipeImage.value;
+};
+
 const removeById = async (id) => {
   const recipes = await getRecipesCollection();
   const { deletedCount } = await recipes.deleteOne({ _id: ObjectId(id) });
@@ -50,5 +65,6 @@ module.exports = {
   findById,
   create,
   edit,
+  createImage,
   removeById,
 };

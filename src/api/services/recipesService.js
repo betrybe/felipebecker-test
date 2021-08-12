@@ -15,7 +15,6 @@ const findOwnerRecipe = async (id) => {
 const remove = async (id, user, role) => {
   const response = await findOwnerRecipe(id);
   try {
-    console.log(response.userId, user);
     if (response.userId === user || role === 'admin') {
       return RecipeModel.removeById(id);
     }
@@ -50,6 +49,15 @@ const edit = async (id, recipe, role) => {
   throw new AppError('Invalid data. Permission denied to edit', 400);
 };
 
+const createImage = async (id, image, user, role) => {
+  const response = await findOwnerRecipe(id);
+
+  if (response.userId === user || role === 'admin') {
+    return RecipeModel.createImage(id, image, user);
+  }
+  throw new AppError('Invalid data. Permission denied to edit', 400);
+};
+
 module.exports = {
   findAll,
   findById,
@@ -57,4 +65,5 @@ module.exports = {
   create,
   edit,
   remove,
+  createImage,
 };

@@ -1,17 +1,17 @@
-import path from 'path';
-import crypto from 'crypto';
-import multer from 'multer';
+const path = require('path');
+const multer = require('multer');
 
-const tmpFolder = path.resolve(__dirname, '..', '..', 'tmp');
+const tmpFolder = path.resolve(__dirname, '..', '..', 'uploads');
 
-export default {
+module.exports = {
   directory: tmpFolder,
 
   storage: multer.diskStorage({
     destination: tmpFolder,
     filename(request, file, callback) {
-      const fileHash = crypto.randomBytes(10).toString('hex');
-      const fileName = `${fileHash}-${file.originalname}`;
+      const { id } = request.params;
+
+      const fileName = `${id}.jpeg`;
 
       return callback(null, fileName);
     },
