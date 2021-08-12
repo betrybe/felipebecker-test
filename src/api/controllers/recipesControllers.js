@@ -5,6 +5,17 @@ const findAll = (async (_request, response) => {
     response.json(results);
 });
 
+const findById = (async (request, response) => {
+    const { id } = request.params;
+    const result = await RecipesServices.findById(id);
+
+    if (!result) {
+        response.status(404).json({ message: 'recipe not found' });
+    } else {
+        response.json(result);
+    }
+});
+
 const create = (async (request, response) => {
     const { name, ingredients, preparation } = request.body;
     const { _id } = request.user;
@@ -26,5 +37,6 @@ const create = (async (request, response) => {
 
 module.exports = {
     findAll,
+    findById,
     create,
 };

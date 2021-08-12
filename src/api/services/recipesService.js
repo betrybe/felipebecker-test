@@ -4,6 +4,8 @@ const AppError = require('../errors/appError');
 
 const findAll = () => RecipeModel.findAll();
 
+const findById = (id) => RecipeModel.findById(id);
+
 const create = async (recipe) => {
   const { value, error } = RecipeSchema.validate(recipe);
   if (error) {
@@ -15,5 +17,6 @@ const create = async (recipe) => {
 
 module.exports = {
   findAll,
+  findById,
   create,
 };
