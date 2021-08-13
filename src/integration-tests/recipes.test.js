@@ -2,12 +2,12 @@ const chai = require('chai');
 const http = require('chai-http'); // Extensão da lib chai p/ simular requisições http
 chai.use(http);
 const server = require('../api/app');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
 const mongoDbUrl = 'mongodb://localhost:27017/Cookmaster';
 const url = 'http://localhost:3000';
 
-describe('Routes: Recipes', () => {
+describe('Testes na rota Recipes', () => {
   let connection;
   let db;
 
@@ -41,14 +41,14 @@ describe('Routes: Recipes', () => {
     await connection.close();
   });
 
-  describe('GET /recipes', () => {
+  describe('Realizar um GET na rota recipes com sucesso', () => {
     before(async () => {
       response = await chai.request(server)
         .get('/recipes')
         .send();
     })
 
-    it('/recipes - GET', () => {
+    it('Retorno dos resultados no GET realizado na rota recipes', () => {
       chai.expect(response).to.have.status(200);
       chai.expect(response.body).to.be.a('array');
       chai.expect(response.body[0]._id).to.be.an('string');
@@ -58,7 +58,67 @@ describe('Routes: Recipes', () => {
     });
   });
 
-  describe('POST /recipes', () => {
+  describe('Realizar um DELETE na rota recipes sem sucesso', () => {
+    before(async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'erickjacquin@gmail.com',
+          password: '12345678',
+        })
+        .then(({ body }) => body.token);
+
+      recipes = await chai.request(server)
+        .get('/recipes')
+        .send();
+
+      response = await chai.request(server)
+        .delete(`/recipes/${recipes.body[0]._id}`)
+        .set('Authorization', token)
+        .send();
+    })
+
+    it('Retorno dos resultados no GET realizado na rota recipes', () => {
+      chai.expect(response).to.have.status(400);
+      chai.expect(response.body).to.have.property('message');
+      chai.expect(response.body.message).to.equal('Invalid data. Permission denied to remove');
+    });
+  });
+
+  describe('Realizar um PUT na rota recipes sem sucesso', () => {
+    const recipe = {
+      name: 'teste123',
+      ingredients: 'Frango',
+      preparation: '10 min no forno',
+    };
+
+    before(async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'erickjacquin@gmail.com',
+          password: '12345678',
+        })
+        .then(({ body }) => body.token);
+
+      recipes = await chai.request(server)
+        .get('/recipes')
+        .send();
+
+      response = await chai.request(server)
+        .put(`/recipes/${recipes.body[0]._id}`, recipe)
+        .set('Authorization', token)
+        .send();
+    })
+
+    it('Retorno dos resultados no GET realizado na rota recipes', () => {
+      chai.expect(response).to.have.status(400);
+      chai.expect(response.body).to.have.property('message');
+      chai.expect(response.body.message).to.equal('Invalid entries. Try again.');
+    });
+  });
+
+  describe('Realizar um POST na rota recipes com sucesso', () => {
 
     const recipe = {
       name: 'teste123',
@@ -81,11 +141,30 @@ describe('Routes: Recipes', () => {
         .send(recipe);
     });
 
-    it('/recipes - POST', () => {
+    it('Retorno dos resultados no POST realizado na rota recipes', () => {
       chai.expect(response).to.have.status(201);
       chai.expect(response.body.recipe.name).to.equal(recipe.name);
       chai.expect(response.body.recipe.ingredients).to.equal(recipe.ingredients);
       chai.expect(response.body.recipe.preparation).to.equal(recipe.preparation);
     });
   });
+
+  describe('Caso o token não seja passado', () => {
+    let response = {};
+
+    before(async () => {
+      response = await chai.request(server)
+        .get(`/recipes/${ObjectId()}`)
+        .send();
+    })
+
+    it('retorna erro 404', () => {
+      chai.expect(response).to.have.status(404);
+    })
+
+    it('retornar a mensagem de token não encontrado', () => {
+      chai.expect(response.body).to.have.property('message');
+      chai.expect(response.body.message).to.equal('recipe not found');
+    })
+  })
 });

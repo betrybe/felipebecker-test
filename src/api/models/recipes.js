@@ -17,7 +17,7 @@ const findById = async (id) => {
     return recipe.findOne(ObjectId(id));
   } catch (err) {
     return false;
-  }
+  } 
 };
 
 const create = async (recipe) => {

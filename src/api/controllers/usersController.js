@@ -7,17 +7,12 @@ const findAll = (async (_request, response) => {
 
 const create = (async (request, response) => {
     const { name, email, password, role } = request.body;
-   
-    const { _id, ...user } = await UsersServices.create({
+   // EXEMPLO
+    const { password: _, ...user } = await UsersServices.create({
         name, email, password, role,
     });
 
-    response.status(201).json({ user: {
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        _id,
-    } });
+    response.status(201).json({ user });
 });
 
 const createAdmin = (async (request, response) => {

@@ -3,6 +3,7 @@ const http = require('chai-http'); // Extensão da lib chai p/ simular requisiç
 chai.use(http);
 const server = require('../api/app');
 const { MongoClient } = require('mongodb');
+const { request } = require('../api/app');
 
 const mongoDbUrl = 'mongodb://localhost:27017/Cookmaster';
 
@@ -60,14 +61,44 @@ describe('Routes: Users', () => {
           .send(defaultUser);
       })
       it('/users - POST', () => {
-        chai.expect(response).to.have.status(200);
+        chai.expect(response).to.have.status(201);
         chai.expect(response.body.user.name).to.equal(defaultUser.name);
         chai.expect(response.body.user.email).to.equal(defaultUser.email);
         chai.expect(response.body.user.password).to.equal(defaultUser.password);
         chai.expect(response.body).to.have.property('message');
         chai.expect(response.body).to.be.a('object');
         chai.expect(response.body.message).to.equal('Email already registered');
-        
+
+      });
+    });
+  });
+
+  describe('POST /admin', () => {
+    it('should post a user of type admin', () => {
+      before(async () => {
+        const token = await chai.request(server)
+          .post('/login')
+          .send({
+            email: 'erickjacquin@gmail.com',
+            password: '12345678',
+          })
+          .then(({ body }) => body.token);
+
+        response = await chai.request(server)
+          .post('/recipes')
+          .set('Authorization', token)
+          .send(recipe);
+      })
+
+      it('/users - POST', () => {
+        chai.expect(response).to.have.status(201);
+        chai.expect(response.body.user.name).to.equal(defaultUser.name);
+        chai.expect(response.body.user.email).to.equal(defaultUser.email);
+        chai.expect(response.body.user.password).to.equal(defaultUser.password);
+        chai.expect(response.body).to.have.property('message');
+        chai.expect(response.body).to.be.a('object');
+        chai.expect(response.body.message).to.equal('Email already registered');
+
       });
     });
   });

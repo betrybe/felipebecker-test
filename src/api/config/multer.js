@@ -10,7 +10,7 @@ module.exports = {
     destination: tmpFolder,
     filename(request, file, callback) {
       const { id } = request.params;
-
+  
       const fileName = `${id}.jpeg`;
 
       return callback(null, fileName);
