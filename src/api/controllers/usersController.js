@@ -6,13 +6,17 @@ const findAll = (async (_request, response) => {
 });
 
 const create = (async (request, response) => {
-    const { name, email, password, role } = request.body;
-   // EXEMPLO
-    const { password: _, ...user } = await UsersServices.create({
-        name, email, password, role,
+    const { name, email, password } = request.body;
+    const { _id, ...user } = await UsersServices.create({
+        name, email, password,
     });
 
-    response.status(201).json({ user });
+    response.status(201).json({ user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        _id,
+    } });
 });
 
 const createAdmin = (async (request, response) => {
