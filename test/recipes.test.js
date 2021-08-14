@@ -3,7 +3,7 @@ const { MongoClient } = require('mongodb');
 const fs = require('fs');
 const path = require('path');
 
-const mongoDbUrl = 'mongodb://localhost:27017/Cookmaster';
+const mongoDbUrl = 'mongodb://mongodb:27017/Cookmaster';
 const url = 'http://localhost:3000';
 
 describe('3 - Crie um endpoint para o cadastro de receitas', () => {
@@ -78,6 +78,7 @@ describe('3 - Crie um endpoint para o cadastro de receitas', () => {
       .then((response) => {
         const { body } = response;
         const result = JSON.parse(body);
+
         return frisby
           .setup({
             request: {
