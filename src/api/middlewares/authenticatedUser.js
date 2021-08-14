@@ -5,8 +5,6 @@ const AppError = require('../errors/appError');
 
 module.exports = async (request, _response, next) => {
   const token = request.headers.authorization;
-
-  // const [, token] = tokenData.split(' ');
   
   if (!token) throw new AppError('missing auth token', 401);
 

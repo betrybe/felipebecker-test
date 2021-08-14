@@ -1,15 +1,22 @@
 const chai = require('chai');
-const http = require('chai-http'); // Extensão da lib chai p/ simular requisições http
+const fs = require('fs');
+const path = require('path');
+const http = require('chai-http');
 chai.use(http);
 const server = require('../api/app');
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient } = require('mongodb');
 
 const mongoDbUrl = 'mongodb://localhost:27017/Cookmaster';
-const url = 'http://localhost:3000';
 
 describe('Testes na rota Recipes', () => {
   let connection;
   let db;
+
+  const defaultRecipe = {
+    name: 'banana com mel e granola',
+    ingredients: 'banana e mel e granola',
+    preparation: 'misturar todos ingredientes'
+  };
 
   before(async () => {
     connection = await MongoClient.connect(mongoDbUrl, {
@@ -41,130 +48,273 @@ describe('Testes na rota Recipes', () => {
     await connection.close();
   });
 
-  describe('Realizar um GET na rota recipes com sucesso', () => {
+  describe('GET /recipes', () => {
     before(async () => {
       response = await chai.request(server)
         .get('/recipes')
         .send();
     })
 
-    it('Retorno dos resultados no GET realizado na rota recipes', () => {
+    it('Testing data returned from GET of collection recipes', () => {
       chai.expect(response).to.have.status(200);
       chai.expect(response.body).to.be.a('array');
-      chai.expect(response.body[0]._id).to.be.an('string');
       chai.expect(response.body[0].name).to.be.an('string');
       chai.expect(response.body[0].ingredients).to.be.an('string');
       chai.expect(response.body[0].preparation).to.be.an('string');
     });
   });
 
-  describe('Realizar um DELETE na rota recipes sem sucesso', () => {
-    before(async () => {
+  describe('POST /recipes', () => {
+    it('Testing data returned with POST in the collection recipes', async () => {
       const token = await chai.request(server)
         .post('/login')
         .send({
-          email: 'erickjacquin@gmail.com',
-          password: '12345678',
-        })
-        .then(({ body }) => body.token);
-
-      recipes = await chai.request(server)
-        .get('/recipes')
-        .send();
-
-      response = await chai.request(server)
-        .delete(`/recipes/${recipes.body[0]._id}`)
-        .set('Authorization', token)
-        .send();
-    })
-
-    it('Retorno dos resultados no GET realizado na rota recipes', () => {
-      chai.expect(response).to.have.status(400);
-      chai.expect(response.body).to.have.property('message');
-      chai.expect(response.body.message).to.equal('Invalid data. Permission denied to remove');
-    });
-  });
-
-  describe('Realizar um PUT na rota recipes sem sucesso', () => {
-    const recipe = {
-      name: 'teste123',
-      ingredients: 'Frango',
-      preparation: '10 min no forno',
-    };
-
-    before(async () => {
-      const token = await chai.request(server)
-        .post('/login')
-        .send({
-          email: 'erickjacquin@gmail.com',
-          password: '12345678',
-        })
-        .then(({ body }) => body.token);
-
-      recipes = await chai.request(server)
-        .get('/recipes')
-        .send();
-
-      response = await chai.request(server)
-        .put(`/recipes/${recipes.body[0]._id}`, recipe)
-        .set('Authorization', token)
-        .send();
-    })
-
-    it('Retorno dos resultados no GET realizado na rota recipes', () => {
-      chai.expect(response).to.have.status(400);
-      chai.expect(response.body).to.have.property('message');
-      chai.expect(response.body.message).to.equal('Invalid entries. Try again.');
-    });
-  });
-
-  describe('Realizar um POST na rota recipes com sucesso', () => {
-
-    const recipe = {
-      name: 'teste123',
-      ingredients: 'Frango',
-      preparation: '10 min no forno',
-    };
-
-    before(async () => {
-      const token = await chai.request(server)
-        .post('/login')
-        .send({
-          email: 'erickjacquin@gmail.com',
-          password: '12345678',
+          email: 'root@email.com',
+          password: 'admin',
         })
         .then(({ body }) => body.token);
 
       response = await chai.request(server)
         .post('/recipes')
         .set('Authorization', token)
-        .send(recipe);
-    });
+        .send(defaultRecipe);
 
-    it('Retorno dos resultados no POST realizado na rota recipes', () => {
       chai.expect(response).to.have.status(201);
-      chai.expect(response.body.recipe.name).to.equal(recipe.name);
-      chai.expect(response.body.recipe.ingredients).to.equal(recipe.ingredients);
-      chai.expect(response.body.recipe.preparation).to.equal(recipe.preparation);
+      chai.expect(response.body.recipe.name).to.equal(defaultRecipe.name);
+      chai.expect(response.body.recipe.ingredients).to.equal(defaultRecipe.ingredients);
+      chai.expect(response.body.recipe.preparation).to.equal(defaultRecipe.preparation);
+      chai.expect(response.body).to.be.a('object');
     });
   });
 
-  describe('Caso o token não seja passado', () => {
-    let response = {};
+  describe('POST /recipes', () => {
+    it('Testing data validation with POST in the collection recipes', async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
 
-    before(async () => {
       response = await chai.request(server)
-        .get(`/recipes/${ObjectId()}`)
-        .send();
-    })
+        .post('/recipes')
+        .set('Authorization', token)
+        .send({
+          name: 'banana com mel e granola',
+          preparation: 'misturar todos ingredientes'
+        });
 
-    it('retorna erro 404', () => {
-      chai.expect(response).to.have.status(404);
-    })
-
-    it('retornar a mensagem de token não encontrado', () => {
+      chai.expect(response).to.have.status(400);
       chai.expect(response.body).to.have.property('message');
-      chai.expect(response.body.message).to.equal('recipe not found');
+      chai.expect(response.body).to.be.a('object');
+      chai.expect(response.body.message).to.equal('Invalid entries. Try again.');
+    });
+  });
+
+  describe('PUT /recipes', () => {
+    it('Testing data returned with PUT in the collection recipes', async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
+
+      responsePostRecipe = await chai.request(server)
+        .post(`/recipes/`)
+        .set('Authorization', token)
+        .send(defaultRecipe);
+
+      response = await chai.request(server)
+        .put(`/recipes/${responsePostRecipe.body.recipe._id}`)
+        .set('Authorization', token)
+        .send({
+          name: 'banana sem mel e granola',
+          ingredients: "banana",
+          preparation: 'não misturar todos ingredientes'
+        });
+
+      chai.expect(response).to.have.status(200);
+      chai.expect(response.body.name).to.equal('banana sem mel e granola');
+      chai.expect(response.body.ingredients).to.equal('banana');
+      chai.expect(response.body.preparation).to.equal('não misturar todos ingredientes');
+      chai.expect(response.body).to.be.a('object');
+    });
+  });
+
+  describe('PUT /recipes', () => {
+    it('Testing data validation returned with PUT in the collection recipes', async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
+
+      responsePostRecipe = await chai.request(server)
+        .post(`/recipes/`)
+        .set('Authorization', token)
+        .send(defaultRecipe);
+
+      response = await chai.request(server)
+        .put(`/recipes/${responsePostRecipe.body.recipe._id}`)
+        .set('Authorization', token)
+        .send({
+          name: 'banana sem mel e granola',
+          preparation: 'não misturar todos ingredientes'
+        });
+
+      chai.expect(response).to.have.status(400);
+      chai.expect(response.body).to.have.property('message');
+      chai.expect(response.body).to.be.a('object');
+      chai.expect(response.body.message).to.equal('Invalid entries. Try again.');
+    });
+  });
+
+  describe('UPDATE with normal user /recipes', () => {
+    it('Testing data returned with UPDATE and normal user in the collection recipes', async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
+
+      responsePostRecipe = await chai.request(server)
+        .post(`/recipes/`)
+        .set('Authorization', token)
+        .send(defaultRecipe);
+
+      const newToken = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'erickjacquin@gmail.com',
+          password: '12345678',
+        })
+        .then(({ body }) => body.token);
+
+      response = await chai.request(server)
+        .put(`/recipes/${responsePostRecipe.body.recipe._id}`)
+        .set('Authorization', newToken)
+        .send(defaultRecipe);
+
+      chai.expect(response).to.have.status(400);
+      chai.expect(response.body.message).to.equal('Invalid data. Permission denied to edit');
+    });
+  });
+
+  describe('DELETE with normal user /recipes', () => {
+    it('Testing data returned with DELETE in the collection recipes', async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
+
+      responsePostRecipe = await chai.request(server)
+        .post(`/recipes/`)
+        .set('Authorization', token)
+        .send(defaultRecipe);
+
+      response = await chai.request(server)
+        .delete(`/recipes/${responsePostRecipe.body.recipe._id}`)
+        .set('Authorization', token)
+        .send();
+
+      chai.expect(response).to.have.status(204);
+    });
+  });
+
+
+  describe('DELETE with normal user /recipes', () => {
+    it('Testing data returned with DELETE and normal user in the collection recipes', async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
+
+      responsePostRecipe = await chai.request(server)
+        .post(`/recipes/`)
+        .set('Authorization', token)
+        .send(defaultRecipe);
+
+      const newToken = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'erickjacquin@gmail.com',
+          password: '12345678',
+        })
+        .then(({ body }) => body.token);
+
+      response = await chai.request(server)
+        .delete(`/recipes/${responsePostRecipe.body.recipe._id}`)
+        .set('Authorization', newToken)
+        .send();
+
+      chai.expect(response).to.have.status(400);
+      chai.expect(response.body.message).to.equal('Invalid data. Permission denied to remove');
+    });
+  });
+
+  describe('GET ID /recipes', () => {
+    it('Testing data returned with GET and ID in the collection recipes', async () => {
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
+
+      responsePostRecipe = await chai.request(server)
+        .post(`/recipes/`)
+        .set('Authorization', token)
+        .send(defaultRecipe);
+
+      response = await chai.request(server)
+        .get(`/recipes/${responsePostRecipe.body.recipe._id}`)
+        .send();
+
+      chai.expect(response).to.have.status(200);
+      chai.expect(response.body.name).to.be.an('string');
+      chai.expect(response.body.ingredients).to.be.an('string');
+      chai.expect(response.body.preparation).to.be.an('string');
+    });
+  });
+
+  describe('PUT IMAGE /recipes', () => {
+    it('Testing data with PUT of an IMAGE in the collection recipes', async () => {
+      const photoFile = path.resolve(__dirname, '../uploads/ratinho.jpg');
+
+      const token = await chai.request(server)
+        .post('/login')
+        .send({
+          email: 'root@email.com',
+          password: 'admin',
+        })
+        .then(({ body }) => body.token);
+
+      responsePostRecipe = await chai.request(server)
+        .post(`/recipes/`)
+        .set('Authorization', token)
+        .send(defaultRecipe);
+
+      await chai.request(server)
+        .put(`/recipes/${responsePostRecipe.body.recipe._id}/image`)
+        .send(fs.readFileSync(photoFile))
+        .set('Authorization', token)
+        .set('Content-Type', 'image/jpeg')
+
+      chai.expect(response).to.have.status(200);
     })
-  })
+  });
 });

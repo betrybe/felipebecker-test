@@ -1,5 +1,5 @@
 const chai = require('chai');
-const http = require('chai-http'); // Extensão da lib chai p/ simular requisições http
+const http = require('chai-http');
 chai.use(http);
 const server = require('../api/app');
 const { MongoClient } = require('mongodb');

@@ -13,6 +13,7 @@ router.get('/:id', RecipesControllers.findById);
 router.post('/', authenticatedUser, RecipesControllers.create);
 
 router.put('/:id', authenticatedUser, RecipesControllers.edit);
+console.log('teste1');
 router.put('/:id/image', authenticatedUser, upload.single('image'), RecipesControllers.createImage);
 
 router.delete('/:id', authenticatedUser, RecipesControllers.remove);

@@ -51,7 +51,6 @@ const edit = async (id, recipe, role) => {
 
 const createImage = async (id, image, user, role) => {
   const response = await findOwnerRecipe(id);
-
   if (response.userId === user || role === 'admin') {
     return RecipeModel.createImage(id, image, user);
   }

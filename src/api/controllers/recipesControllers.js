@@ -51,7 +51,7 @@ const createImage = (async (request, response) => {
     const { _id: user, role } = request.user;
 
     const fullUrl = `${request.get('host')}/src/uploads/${image}`;
-
+    
     const results = await RecipesServices.createImage(id, fullUrl, user.toString(), role);
     response.json(results);
 });
