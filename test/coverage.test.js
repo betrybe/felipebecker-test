@@ -8,7 +8,7 @@ let testResults;
 
 beforeAll(async () =>{
   try {
-    //await exec(`npm run dev:test:coverage:json`);
+    await exec(`npm run dev:test:coverage:json &> /dev/null`);
     
     const path = resolve("coverage", "coverage-summary.json");
     
